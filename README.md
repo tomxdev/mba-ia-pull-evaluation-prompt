@@ -321,3 +321,79 @@ python src/evaluate.py
 - **Não altere os datasets de avaliação** - apenas os prompts em `prompts/bug_to_user_story_v2.yml`
 - **Itere, itere, itere** - é normal precisar de 3-5 iterações para atingir 0.9 em todas as métricas
 - **Documente seu processo** - a jornada de otimização é tão importante quanto o resultado final
+
+---
+
+## Tecnicas Aplicadas (Fase 2)
+
+- **Role Prompting**: o `system_prompt` do `v2` define explicitamente a persona ("Product Manager tecnico") e o objetivo da transformacao de bug report em user story.
+- **Few-shot Learning**: o `v2` usa blocos canonicos por padrao de bug para reduzir ambiguidade e aumentar aderencia ao formato esperado.
+- **Structured Output / Skeleton**: o prompt exige formato fixo (`Como... eu quero... para que...` + `Criterios de Aceitacao`) e secoes complementares quando necessario.
+
+Justificativa:
+- Essas tecnicas reduziram variacao de resposta, melhoraram completude e mantiveram consistencia entre exemplos simples e medios.
+
+---
+
+## Resultados Finais
+
+Projeto LangSmith:
+- https://smith.langchain.com/projects/prompt-optimization-challenge-resolved
+
+Prompt publicado (v2):
+- https://smith.langchain.com/prompts/bug_to_user_story_v2/9ab58a82?organizationId=ef8aedd3-8279-41d9-bcfb-1911af43427f
+
+Comparativo de avaliacao (regra oficial: 4 metricas especificas):
+
+| Prompt | Tone | Acceptance Criteria | User Story Format | Completeness | Media 4 metricas | Status |
+|---|---:|---:|---:|---:|---:|---|
+| v1 (baseline) | 0.79 | 0.71 | 0.72 | 0.74 | 0.7381 | Reprovado |
+| v2 (otimizado) | 0.98 | 0.92 | 0.98 | 0.94 | 0.9537 | Aprovado |
+
+Observacao:
+- Para `v1`, o fluxo usa fallback para `leonanluppi/bug_to_user_story_v1` quando `USERNAME_LANGSMITH_HUB/bug_to_user_story_v1` nao existe.
+
+---
+
+## Como Executar
+
+Pre-requisitos:
+- Python 3.13+
+- `.env` configurado com `LANGSMITH_API_KEY`, `USERNAME_LANGSMITH_HUB`, provider e API key da LLM.
+
+Comandos (Git Bash no Windows):
+
+1. Instalar dependencias:
+```bash
+./venv/Scripts/python.exe -m pip install -r requirements.txt
+```
+
+2. Publicar prompt otimizado:
+```bash
+./venv/Scripts/python.exe src/push_prompts.py
+```
+
+3. Rodar testes de validacao do prompt:
+```bash
+./venv/Scripts/python.exe -m pytest tests/test_prompts.py -v
+```
+
+4. Rodar avaliacao oficial (4 metricas especificas):
+```bash
+PYTHONIOENCODING=utf-8 ./venv/Scripts/python.exe src/evaluate.py
+```
+
+---
+
+## Evidencias LangSmith
+
+- Dataset de avaliacao: `prompt-optimization-challenge-resolved-eval`
+- Execucoes avaliadas:
+  - baseline `v1` (reprovado)
+  - otimizado `v2` (aprovado)
+- Tracing disponivel no projeto publicado no link acima.
+
+Sugestao de anexos no repositorio:
+- `evidencias/eval-v1.png`
+- `evidencias/eval-v2.png`
+- `evidencias/traces.png`
